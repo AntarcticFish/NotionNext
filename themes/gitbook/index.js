@@ -34,6 +34,8 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { siteConfig } from '@/lib/config'
 import NotionIcon from '@/components/NotionIcon'
+import LogoBar from "@/themes/nav/components/LogoBar";
+import {MenuItem} from "@/themes/nav/components/MenuItem";
 const WWAds = dynamic(() => import('@/components/WWAds'), { ssr: false })
 
 // 主题全局变量
@@ -61,108 +63,93 @@ const LayoutBase = (props) => {
   }, [post])
 
   return (
-        <ThemeGlobalGitbook.Provider value={{ tocVisible, changeTocVisible, filteredNavPages, setFilteredNavPages, allNavPages, pageNavVisible, changePageNavVisible }}>
-            <Style/>
+      <ThemeGlobalNav.Provider value={{ tocVisible, changeTocVisible, filteredNavPages, setFilteredNavPages, allNavPages, pageNavVisible, changePageNavVisible, categoryOptions }}>
+          {/* 样式 */}
+          <Style/>
 
-            <div id='theme-gitbook' className='bg-white dark:bg-hexo-black-gray w-full h-full min-h-screen justify-center dark:text-gray-300'>
-                {/* 顶部导航栏 */}
-                <TopNavBar {...props} />
+          {/* 主题样式根基 */}
+          <div id='theme-onenav' className='dark:bg-hexo-black-gray w-full h-screen min-h-screen justify-center dark:text-gray-300'>
 
-                <main id='wrapper' className={(JSON.parse(siteConfig('LAYOUT_SIDEBAR_REVERSE')) ? 'flex-row-reverse' : '') + 'relative flex justify-between w-full h-full mx-auto'}>
+              {/* 端顶部导航栏 */}
+              <TopNavBar {...props} />
 
-                    {/* 左侧推拉抽屉 */}
-                    {fullWidth
-                      ? null
-                      : (<div className={'font-sans hidden md:block border-r dark:border-transparent relative z-10 '}>
-                        <div className='w-72 py-14 px-6 sticky top-0 overflow-y-scroll h-screen scroll-hidden'>
-                            {slotLeft}
-                            <SearchInput className='my-3 rounded-md' />
-                            <div className='mb-20'>
-                                {/* 所有文章列表 */}
-                                <NavPostList filteredNavPages={filteredNavPages} />
-                            </div>
+              {/* 左右布局区块 */}
+              <main id='wrapper' className={(JSON.parse(siteConfig('LAYOUT_SIDEBAR_REVERSE')) ? 'flex-row-reverse' : '') + ' relative flex justify-between w-full h-screen mx-auto'}>
 
-                        </div>
+                  {/* 左侧推拉抽屉 */}
+                  <div className={'font-sans hidden md:block dark:border-transparent relative z-10 mx-4 w-52 max-h-full pb-44'}>
 
-                        <div className='w-72 fixed left-0 bottom-0 z-20 bg-white'>
-                            <Footer {...props} />
-                        </div>
-                    </div>) }
+                      {/* 图标Logo */}
+                      <div className='hidden md:block w-full top-0 left-5 md:left-4 z-40 pt-3 md:pt-4'>
+                          <LogoBar {...props} />
+                      </div>
+                      <div className='main-menu z-20 pl-9 pr-7 pb-5 sticky pt-1 top-20 overflow-y-scroll h-fit max-h-full scroll-hidden bg-white dark:bg-neutral-800 rounded-xl '>
 
-                    <div id='center-wrapper' className='flex flex-col justify-between w-full relative z-10 pt-14 min-h-screen'>
+                          {/* 嵌入 */}
+                          {slotLeft}
 
-                        <div id='container-inner' className={`w-full px-7 ${fullWidth ? 'px-10' : 'max-w-3xl'} justify-center mx-auto`}>
-                            {slotTop}
-                            <WWAds className='w-full' orientation='horizontal'/>
-
-                            <Transition
-                                show={!onLoading}
-                                appear={true}
-                                enter="transition ease-in-out duration-700 transform order-first"
-                                enterFrom="opacity-0 translate-y-16"
-                                enterTo="opacity-100"
-                                leave="transition ease-in-out duration-300 transform"
-                                leaveFrom="opacity-100 translate-y-0"
-                                leaveTo="opacity-0 -translate-y-16"
-                                unmount={false}
-                            >
-                                {children}
-                            </Transition>
-
-                            {/* Google广告 */}
-                            <AdSlot type='in-article' />
-                            <WWAds className='w-full' orientation='horizontal'/>
-
-                            {/* 回顶按钮 */}
-                            <JumpToTopButton />
-                        </div>
-
-                        {/* 底部 */}
-                        <div className='md:hidden'>
-                            <Footer {...props} />
-                        </div>
-                    </div>
-
-                    {/*  右侧侧推拉抽屉 */}
-                    {fullWidth
-                      ? null
-                      : <div style={{ width: '32rem' }} className={'hidden xl:block dark:border-transparent relative z-10 '}>
-                      <div className='py-14 px-6 sticky top-0'>
-                          <ArticleInfo post={props?.post ? props?.post : props.notice} />
-
-                          <div className='py-4'>
-                              <Catalog {...props} />
-                              {slotRight}
-                              {router.route === '/' && <>
-                                  <InfoCard {...props} />
-                                  {siteConfig('GITBOOK_WIDGET_REVOLVER_MAPS', null, CONFIG) === 'true' && <RevolverMaps />}
-                                  <Live2D />
-                              </>}
-                              {/* gitbook主题首页只显示公告 */}
-                              <Announcement {...props} />
+                          <div className='grid pt-2'>
+                              {/* 显示菜单 */}
+                              {links && links?.map((link, index) => <MenuItem key={index} link={link} />)}
                           </div>
 
-                          <AdSlot type='in-article' />
-                          <Live2D />
-
                       </div>
-                  </div>}
 
-                </main>
+                      {/* 页脚站点信息 */}
+                      <div className='w-56 fixed left-0 bottom-0 z-0'>
+                          <Live2D />
+                          <Footer {...props} />
+                      </div>
+                  </div>
 
-                {/* 移动端悬浮目录按钮 */}
-                {showTocButton && !tocVisible && <div className='md:hidden fixed right-0 bottom-52 z-30 bg-white border-l border-t border-b dark:border-gray-800 rounded'>
-                    <FloatTocButton {...props} />
-                </div>}
+                  {/* 右侧主要内容区块 */}
+                  <div id='center-wrapper' className='flex flex-col justify-between w-full relative z-10 pt-20 md:pt-5 pb-8 min-h-screen overflow-y-auto'>
 
-                {/* 移动端导航抽屉 */}
-                <PageNavDrawer {...props} filteredNavPages={filteredNavPages} />
+                      <div id='container-inner' className='w-full px-6 pb-6 md:pb-20 max-w-8xl justify-center mx-auto'>
+                          {slotTop}
+                          {/* 广告植入 */}
+                          <WWAds className='w-full' orientation='horizontal'/>
 
-                {/* 移动端底部导航栏 */}
-                {/* <BottomMenuBar {...props} className='block md:hidden' /> */}
+                          <Transition
+                              show={!onLoading}
+                              appear={true}
+                              enter="transition ease-in-out duration-700 transform order-first"
+                              enterFrom="opacity-0 translate-y-16"
+                              enterTo="opacity-100"
+                              leave="transition ease-in-out duration-300 transform"
+                              leaveFrom="opacity-100 translate-y-0"
+                              leaveTo="opacity-0 -translate-y-16"
+                              unmount={false}
+                          >
+                              {children}
+                          </Transition>
 
-            </div>
-        </ThemeGlobalGitbook.Provider>
+                          {/* Google广告 */}
+                          <AdSlot type='in-article' />
+                          <WWAds className='w-full' orientation='horizontal'/>
+
+                          {/* 回顶按钮 */}
+                          <JumpToTopButton />
+                      </div>
+
+                      {/* 底部 */}
+                      <div className='md:hidden'>
+                          <Footer {...props} />
+                      </div>
+                  </div>
+
+              </main>
+
+              {/* 移动端悬浮目录按钮 */}
+              {showTocButton && !tocVisible && <div className='md:hidden fixed right-0 bottom-52 z-30 bg-white border-l border-t border-b dark:border-neutral-800 rounded'>
+                  <FloatTocButton {...props} />
+              </div>}
+
+              {/* 移动端导航抽屉 */}
+              <PageNavDrawer {...props} filteredNavPages={filteredNavPages} />
+
+          </div>
+      </ThemeGlobalNav.Provider>
   )
 }
 
